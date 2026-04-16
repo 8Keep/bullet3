@@ -1,11 +1,4 @@
 
-INCLUDE_DIRECTORIES(
-	..
-	../ThirdPartyLibs
-	../../src
-	../ThirdPartyLibs/glad
-)
-
 FILE(GLOB OpenGLWindow_HDRS "*.h" )
 
 FILE(GLOB OpenGLWindowMac_CPP "Mac*.cpp")
@@ -24,10 +17,10 @@ LIST(REMOVE_ITEM OpenGLWindowCommon_CPP MacOpenGLWindow.cpp )
 
 IF (WIN32)
         SET(OpenGLWindow_SRCS ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad/gl.c ${OpenGLWindowWin32_CPP} ${OpenGLWindowCommon_CPP})
-	INCLUDE_DIRECTORIES(
-				${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
+	list(APPEND _open_gl_window_include_dirs
+		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
 	)
-	ADD_DEFINITIONS(-DGLEW_STATIC)
+	list(APPEND _open_gl_window_compile_defs GLEW_STATIC)
 ENDIF(WIN32)
 
 IF (APPLE)
@@ -36,14 +29,16 @@ ENDIF(APPLE)
 
 #no Linux detection?
 IF(NOT WIN32 AND NOT APPLE)
-	INCLUDE_DIRECTORIES(
+	list(APPEND _open_gl_window_include_dirs
 		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
 		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/optionalX11
         )
-	ADD_DEFINITIONS(-DGLEW_STATIC)
-	ADD_DEFINITIONS("-DGLEW_INIT_OPENGL11_FUNCTIONS=1")
-       	ADD_DEFINITIONS("-DGLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1")
-	ADD_DEFINITIONS("-DDYNAMIC_LOAD_X11_FUNCTIONS=1")
+	list(APPEND _open_gl_window_compile_defs
+		GLEW_STATIC
+		GLEW_INIT_OPENGL11_FUNCTIONS=1
+		GLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1
+		DYNAMIC_LOAD_X11_FUNCTIONS=1
+	)
         SET(OpenGLWindow_SRCS ${OpenGLWindowLinux_CPP}  ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad/glx.c ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad/gl.c ${OpenGLWindowCommon_CPP} )
 ENDIF()
 
@@ -55,21 +50,28 @@ SET(OpenGLWindow_SRCS ${OpenGLWindow_SRCS}  ${BULLET_PHYSICS_SOURCE_DIR}/example
 
 
 ADD_LIBRARY(OpenGLWindow ${OpenGLWindow_SRCS} ${OpenGLWindow_HDRS})
+set(_open_gl_window_include_dirs
+	..
+	../ThirdPartyLibs
+	../../src
+	../ThirdPartyLibs/glad
+	${_open_gl_window_include_dirs}
+)
+target_include_directories(OpenGLWindow PRIVATE ${_open_gl_window_include_dirs})
+target_compile_definitions(OpenGLWindow PRIVATE ${_open_gl_window_compile_defs})
 if (UNIX AND NOT APPLE)
-  target_link_libraries(OpenGLWindow ${DL})
+  target_link_libraries(OpenGLWindow PRIVATE ${DL})
 elseif (APPLE)
-  target_link_libraries(OpenGLWindow ${COCOA_LIBRARY})
+  target_link_libraries(OpenGLWindow PRIVATE ${COCOA_LIBRARY})
 endif ()
 
-if (BUILD_SHARED_LIBS)
-  target_link_libraries(OpenGLWindow Bullet3Common)
-  if (WIN32 OR APPLE)
-   target_link_libraries(OpenGLWindow ${OPENGL_gl_LIBRARY})
-  else()
+target_link_libraries(OpenGLWindow PUBLIC Bullet3Common)
+if (WIN32 OR APPLE)
+ target_link_libraries(OpenGLWindow PRIVATE ${OPENGL_gl_LIBRARY})
+else()
 	set (CMAKE_THREAD_PREFER_PTHREAD TRUE)
 	FIND_PACKAGE(Threads)
-	target_link_libraries(OpenGLWindow ${CMAKE_THREAD_LIBS_INIT})
-  endif()
+	target_link_libraries(OpenGLWindow PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 #target_link_libraries(OpenGLWindow ${OPENGL_gl_LIBRARY})

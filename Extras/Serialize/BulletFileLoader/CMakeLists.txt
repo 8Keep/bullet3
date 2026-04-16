@@ -1,7 +1,3 @@
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
 SET(BulletFileLoader_SRCS
 bChunk.cpp
 bDNA.cpp
@@ -19,10 +15,11 @@ btBulletFile.h
 )
 
 ADD_LIBRARY(BulletFileLoader ${BulletFileLoader_SRCS} ${BulletFileLoader_HDRS})
-
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletFileLoader LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+target_include_directories(BulletFileLoader
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+TARGET_LINK_LIBRARIES(BulletFileLoader PUBLIC LinearMath)
 
 SET_TARGET_PROPERTIES(BulletFileLoader PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletFileLoader PROPERTIES SOVERSION ${BULLET_VERSION})

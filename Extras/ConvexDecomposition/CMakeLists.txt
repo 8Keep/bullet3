@@ -1,7 +1,3 @@
-INCLUDE_DIRECTORIES(
- ${BULLET_PHYSICS_SOURCE_DIR}/Extras/ConvexDecomposition ${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
 SET(ConvexDecomposition_SRCS
 	bestfitobb.cpp
 	ConvexBuilder.cpp
@@ -35,12 +31,15 @@ SET(ConvexDecomposition_HDRS
 )
 
 ADD_LIBRARY(ConvexDecomposition ${ConvexDecomposition_SRCS} ${ConvexDecomposition_HDRS})
+target_include_directories(ConvexDecomposition
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+	PRIVATE
+		${BULLET_PHYSICS_SOURCE_DIR}/Extras/ConvexDecomposition
+)
 SET_TARGET_PROPERTIES(ConvexDecomposition PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(ConvexDecomposition PROPERTIES SOVERSION ${BULLET_VERSION})
-
-IF (BUILD_SHARED_LIBS)
-  TARGET_LINK_LIBRARIES(ConvexDecomposition BulletCollision LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+TARGET_LINK_LIBRARIES(ConvexDecomposition PUBLIC BulletCollision LinearMath)
 
 IF (INSTALL_EXTRA_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

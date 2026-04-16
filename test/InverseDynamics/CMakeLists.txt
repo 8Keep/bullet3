@@ -1,25 +1,42 @@
 IF (BULLET_BUILD_RBDL_COMPARE_TEST)
-    INCLUDE_DIRECTORIES(
-            .
-            ../../src
-            ../gtest-1.7.0/include
-            ../../examples/ThirdPartyLibs
-       	    ${BULLET_RBDL_SOURCE_DIR}/include/
-    	    ${BULLET_RBDL_SOURCE_DIR}/addons/urdfreader/
-            ${BULLET_RBDL_BINARY_DIR}/include
+    set(_test_bullet_rbdl_compare_include_dirs
+        .
+        ../../src
+        ../gtest-1.7.0/include
+        ../../examples/ThirdPartyLibs
+        ${BULLET_RBDL_SOURCE_DIR}/include/
+        ${BULLET_RBDL_SOURCE_DIR}/addons/urdfreader/
+        ${BULLET_RBDL_BINARY_DIR}/include
     )
-    
-    ADD_DEFINITIONS(-D_VARIADIC_MAX=10)
-    ADD_DEFINITIONS(-DRBDL_USE_SIMPLE_MATH)
-    IF (MSVC)
-        LINK_LIBRARIES( BulletDynamics BulletCollision  Bullet3Common LinearMath gtest rbdl_urdfreader-static rbdl-static)
-    ELSE (MSVC)
-        LINK_LIBRARIES( BulletDynamics BulletCollision  Bullet3Common LinearMath gtest rbdl_urdfreader rbdl)
-    ENDIF (MSVC)
-    IF (NOT WIN32)
+    set(_test_bullet_rbdl_compare_compile_defs
+        _VARIADIC_MAX=10
+        RBDL_USE_SIMPLE_MATH
+    )
+    if (MSVC)
+        set(_test_bullet_rbdl_compare_link_libs
+            BulletDynamics
+            BulletCollision
+            Bullet3Common
+            LinearMath
+            gtest
+            rbdl_urdfreader-static
+            rbdl-static
+        )
+    else()
+        set(_test_bullet_rbdl_compare_link_libs
+            BulletDynamics
+            BulletCollision
+            Bullet3Common
+            LinearMath
+            gtest
+            rbdl_urdfreader
+            rbdl
+        )
+    endif()
+    if (NOT WIN32)
         FIND_PACKAGE(Threads)
-        LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} )
-    ENDIF()
+        list(APPEND _test_bullet_rbdl_compare_link_libs ${CMAKE_THREAD_LIBS_INIT})
+    endif()
     
     
     	ADD_EXECUTABLE(Test_DynamicsABA_bulletVSrbdl
@@ -56,6 +73,9 @@ IF (BULLET_BUILD_RBDL_COMPARE_TEST)
     		../../examples/ThirdPartyLibs/tinyxml2/tinyxml2.cpp
     		
     	)
+    target_include_directories(Test_DynamicsABA_bulletVSrbdl PRIVATE ${_test_bullet_rbdl_compare_include_dirs})
+    target_compile_definitions(Test_DynamicsABA_bulletVSrbdl PRIVATE ${_test_bullet_rbdl_compare_compile_defs})
+    target_link_libraries(Test_DynamicsABA_bulletVSrbdl PRIVATE ${_test_bullet_rbdl_compare_link_libs})
     
     ADD_TEST(Test_DynamicsABA_bulletVSrbdl_PASS Test_DynamicsABA_bulletVSrbdl)
     
@@ -67,29 +87,34 @@ IF (BULLET_BUILD_RBDL_COMPARE_TEST)
 
 ENDIF (BULLET_BUILD_RBDL_COMPARE_TEST)
 
-INCLUDE_DIRECTORIES(
+set(_test_bullet_inverse_dynamics_include_dirs
 	.
 	../../src
 	../gtest-1.7.0/include
 	../../Extras/InverseDynamics
 )
-
-
-#ADD_DEFINITIONS(-DGTEST_HAS_PTHREAD=1)
-ADD_DEFINITIONS(-D_VARIADIC_MAX=10)
-
-LINK_LIBRARIES(
- BulletInverseDynamicsUtils BulletInverseDynamics Bullet3Common LinearMath gtest 
+set(_test_bullet_inverse_dynamics_compile_defs
+	_VARIADIC_MAX=10
+)
+set(_test_bullet_inverse_dynamics_link_libs
+	BulletInverseDynamicsUtils
+	BulletInverseDynamics
+	Bullet3Common
+	LinearMath
+	gtest
 )
 IF (NOT WIN32)
 	FIND_PACKAGE(Threads)
-	LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} )
+	list(APPEND _test_bullet_inverse_dynamics_link_libs ${CMAKE_THREAD_LIBS_INIT})
 ENDIF()
 
 
 	ADD_EXECUTABLE(Test_BulletInverseDynamicsJacobian
 		test_invdyn_jacobian.cpp
 	)
+target_include_directories(Test_BulletInverseDynamicsJacobian PRIVATE ${_test_bullet_inverse_dynamics_include_dirs})
+target_compile_definitions(Test_BulletInverseDynamicsJacobian PRIVATE ${_test_bullet_inverse_dynamics_compile_defs})
+target_link_libraries(Test_BulletInverseDynamicsJacobian PRIVATE ${_test_bullet_inverse_dynamics_link_libs})
 
 ADD_TEST(Test_BulletInverseDynamicsJacobian_PASS Test_BulletInverseDynamicsJacobian)
 
@@ -99,24 +124,28 @@ IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
 			SET_TARGET_PROPERTIES(Test_BulletInverseDynamicsJacobian PROPERTIES  RELWITHDEBINFO_POSTFIX "_RelWithDebugInfo")
 ENDIF(INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
 
-INCLUDE_DIRECTORIES(
+set(_test_bullet_inverse_forward_dynamics_include_dirs
         .
         ../../src
         ../gtest-1.7.0/include
         ../../Extras/InverseDynamics
         ../../examples/ThirdPartyLibs
 )
-
-
-#ADD_DEFINITIONS(-DGTEST_HAS_PTHREAD=1)
-ADD_DEFINITIONS(-D_VARIADIC_MAX=10)
-
-LINK_LIBRARIES(
-BulletDynamics BulletCollision  BulletInverseDynamicsUtils BulletInverseDynamics Bullet3Common LinearMath gtest 
+set(_test_bullet_inverse_forward_dynamics_compile_defs
+        _VARIADIC_MAX=10
+)
+set(_test_bullet_inverse_forward_dynamics_link_libs
+        BulletDynamics
+        BulletCollision
+        BulletInverseDynamicsUtils
+        BulletInverseDynamics
+        Bullet3Common
+        LinearMath
+        gtest
 )
 IF (NOT WIN32)
 	FIND_PACKAGE(Threads)
-	LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} )
+	list(APPEND _test_bullet_inverse_forward_dynamics_link_libs ${CMAKE_THREAD_LIBS_INIT})
 ENDIF()
 
 
@@ -155,6 +184,9 @@ ENDIF()
 		../../examples/ThirdPartyLibs/tinyxml2/tinyxml2.cpp
 		
         )
+target_include_directories(Test_BulletInverseForwardDynamics PRIVATE ${_test_bullet_inverse_forward_dynamics_include_dirs})
+target_compile_definitions(Test_BulletInverseForwardDynamics PRIVATE ${_test_bullet_inverse_forward_dynamics_compile_defs})
+target_link_libraries(Test_BulletInverseForwardDynamics PRIVATE ${_test_bullet_inverse_forward_dynamics_link_libs})
 
 ADD_TEST(Test_BulletInverseForwardDynamics_PASS Test_BulletInverseForwardDynamics)
 
@@ -164,29 +196,18 @@ IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
                         SET_TARGET_PROPERTIES(Test_BulletInverseForwardDynamics PROPERTIES  RELWITHDEBINFO_POSTFIX "_RelWithDebugInfo")
 ENDIF(INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
 
-INCLUDE_DIRECTORIES(
-        .
-        ../../src
-        ../gtest-1.7.0/include
-        ../../Extras/InverseDynamics
-)
-
-
-#ADD_DEFINITIONS(-DGTEST_HAS_PTHREAD=1)
-ADD_DEFINITIONS(-D_VARIADIC_MAX=10)
-
-LINK_LIBRARIES(
- BulletInverseDynamicsUtils BulletInverseDynamics Bullet3Common LinearMath gtest 
-)
 IF (NOT WIN32)
 	FIND_PACKAGE(Threads)
-	LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} )
+	list(APPEND _test_bullet_inverse_dynamics_link_libs ${CMAKE_THREAD_LIBS_INIT})
 ENDIF()
 
 
         ADD_EXECUTABLE(Test_BulletInverseDynamics
                 test_invdyn_kinematics.cpp
         )
+target_include_directories(Test_BulletInverseDynamics PRIVATE ${_test_bullet_inverse_dynamics_include_dirs})
+target_compile_definitions(Test_BulletInverseDynamics PRIVATE ${_test_bullet_inverse_dynamics_compile_defs})
+target_link_libraries(Test_BulletInverseDynamics PRIVATE ${_test_bullet_inverse_dynamics_link_libs})
 
 ADD_TEST(Test_BulletInverseDynamics_PASS Test_BulletInverseDynamics)
 
@@ -195,4 +216,3 @@ IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
                         SET_TARGET_PROPERTIES(Test_BulletInverseDynamics PROPERTIES  MINSIZEREL_POSTFIX "_MinsizeRel")
                         SET_TARGET_PROPERTIES(Test_BulletInverseDynamics PROPERTIES  RELWITHDEBINFO_POSTFIX "_RelWithDebugInfo")
 ENDIF(INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
-

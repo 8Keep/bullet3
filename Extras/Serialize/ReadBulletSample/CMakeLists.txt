@@ -1,11 +1,3 @@
-
-INCLUDE_DIRECTORIES(
-${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
-LINK_LIBRARIES(
-	BulletFileLoader
-)
 IF (WIN32)
 	SET(ADDITIONAL_SRC
 		${BULLET_PHYSICS_SOURCE_DIR}/build/bullet.rc
@@ -24,6 +16,8 @@ ADD_EXECUTABLE(AppReadBulletSample
 	${READBULLET_SRC}
 	${ADDITIONAL_SRC}
 )
+target_include_directories(AppReadBulletSample PRIVATE ${BULLET_PHYSICS_SOURCE_DIR}/src)
+target_link_libraries(AppReadBulletSample PRIVATE BulletFileLoader)
 
 
 IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)

@@ -1,44 +1,53 @@
 
-
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-	${BULLET_PHYSICS_SOURCE_DIR}/btgui
-	${BULLET_PHYSICS_SOURCE_DIR}/examples
-	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/Glew
-)
-
-
 SET(AppSimpleOpenGL3_SRCS
 	main.cpp
 	${BULLET_PHYSICS_SOURCE_DIR}/build3/bullet.rc
 )
 
-LINK_LIBRARIES(
-	gwen OpenGLWindow Bullet3Common ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
+set(_simple_opengl3_include_dirs
+	${BULLET_PHYSICS_SOURCE_DIR}/src
+	${BULLET_PHYSICS_SOURCE_DIR}/btgui
+	${BULLET_PHYSICS_SOURCE_DIR}/examples
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/Glew
+)
+set(_simple_opengl3_compile_defs)
+set(_simple_opengl3_link_libs
+	gwen
+	OpenGLWindow
+	Bullet3Common
+	${OPENGL_gl_LIBRARY}
+	${OPENGL_glu_LIBRARY}
 )
 
 IF (WIN32)
 	SET(AppSimpleOpenGL3_SRCS ${AppSimpleOpenGL3_SRCS}  ${AppSimpleOpenGL3_Common_SRCS})
-	INCLUDE_DIRECTORIES(
-				${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
+	list(APPEND _simple_opengl3_include_dirs
+		${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
 	)
-	ADD_DEFINITIONS(-DGLEW_STATIC)
+	list(APPEND _simple_opengl3_compile_defs GLEW_STATIC)
 ELSE(WIN32)
 	IF(APPLE)
 		find_library(COCOA NAMES Cocoa)
 		MESSAGE(${COCOA})
-		link_libraries(${COCOA})
+		list(APPEND _simple_opengl3_link_libs ${COCOA})
 
 	ELSE(APPLE)
-		INCLUDE_DIRECTORIES(
+		list(APPEND _simple_opengl3_include_dirs
 			${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
 		)
-		ADD_DEFINITIONS("-DGLEW_INIT_OPENGL11_FUNCTIONS=1")
-		ADD_DEFINITIONS("-DGLEW_STATIC")
-		ADD_DEFINITIONS("-DGLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1")
+		list(APPEND _simple_opengl3_compile_defs
+			GLEW_INIT_OPENGL11_FUNCTIONS=1
+			GLEW_STATIC
+			GLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1
+		)
 
 		FIND_PACKAGE(Threads)
-		LINK_LIBRARIES( X11 ${CMAKE_THREAD_LIBS_INIT} ${DL} Xext )
+		list(APPEND _simple_opengl3_link_libs
+			X11
+			${CMAKE_THREAD_LIBS_INIT}
+			${DL}
+			Xext
+		)
 	ENDIF(APPLE)
 ENDIF(WIN32)
 
@@ -46,6 +55,9 @@ ENDIF(WIN32)
 ADD_EXECUTABLE(AppSimpleOpenGL3
 		${AppSimpleOpenGL3_SRCS}
 )
+target_include_directories(AppSimpleOpenGL3 PRIVATE ${_simple_opengl3_include_dirs})
+target_compile_definitions(AppSimpleOpenGL3 PRIVATE ${_simple_opengl3_compile_defs})
+target_link_libraries(AppSimpleOpenGL3 PRIVATE ${_simple_opengl3_link_libs})
 
 
 IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)

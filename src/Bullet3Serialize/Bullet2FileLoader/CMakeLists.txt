@@ -1,8 +1,4 @@
 
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
 SET(Bullet2FileLoader_SRCS
 	b3BulletFile.cpp
 	b3Chunk.cpp
@@ -24,9 +20,11 @@ SET(Bullet2FileLoader_HDRS
 )
 
 ADD_LIBRARY(Bullet2FileLoader ${Bullet2FileLoader_SRCS} ${Bullet2FileLoader_HDRS})
-if (BUILD_SHARED_LIBS)
-  target_link_libraries(Bullet2FileLoader Bullet3Common)
-endif ()
+target_include_directories(Bullet2FileLoader
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+target_link_libraries(Bullet2FileLoader PUBLIC Bullet3Common)
 SET_TARGET_PROPERTIES(Bullet2FileLoader PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(Bullet2FileLoader PROPERTIES SOVERSION ${BULLET_VERSION})
 

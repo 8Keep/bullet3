@@ -1,8 +1,3 @@
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
-)
-
 ADD_LIBRARY(
 BulletWorldImporter
 btMultiBodyWorldImporter.cpp
@@ -11,13 +6,16 @@ btBulletWorldImporter.h
 btWorldImporter.cpp
 btWorldImporter.h
 )
+target_include_directories(BulletWorldImporter
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+	PRIVATE
+		${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
+)
 
 SET_TARGET_PROPERTIES(BulletWorldImporter PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletWorldImporter PROPERTIES SOVERSION ${BULLET_VERSION})
-
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletWorldImporter BulletDynamics BulletCollision BulletFileLoader LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+TARGET_LINK_LIBRARIES(BulletWorldImporter PUBLIC BulletDynamics BulletCollision BulletFileLoader LinearMath)
 
 IF (INSTALL_EXTRA_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

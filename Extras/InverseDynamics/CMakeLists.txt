@@ -1,7 +1,3 @@
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
 ADD_LIBRARY(
 BulletInverseDynamicsUtils
 CloneTreeCreator.cpp
@@ -17,13 +13,21 @@ SimpleTreeCreator.cpp
 MultiBodyNameMap.cpp
 User2InternalIndex.cpp
 )
+target_include_directories(BulletInverseDynamicsUtils
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
 
 SET_TARGET_PROPERTIES(BulletInverseDynamicsUtils PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletInverseDynamicsUtils PROPERTIES SOVERSION ${BULLET_VERSION})
-
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletInverseDynamicsUtils BulletInverseDynamics BulletDynamics BulletCollision Bullet3Common LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+TARGET_LINK_LIBRARIES(BulletInverseDynamicsUtils
+	PUBLIC
+		BulletInverseDynamics
+		BulletDynamics
+		BulletCollision
+		Bullet3Common
+		LinearMath
+)
 
 IF (INSTALL_EXTRA_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

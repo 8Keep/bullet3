@@ -1,27 +1,42 @@
 
-INCLUDE_DIRECTORIES( 
-		${BULLET_PHYSICS_SOURCE_DIR}/src
-		${BULLET_PHYSICS_SOURCE_DIR}/examples
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/enet/include
-                ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/clsocket/src
-		${PYTHON_INCLUDE_DIRS}
-  )
+set(_pybullet_include_dirs
+	${BULLET_PHYSICS_SOURCE_DIR}/src
+	${BULLET_PHYSICS_SOURCE_DIR}/examples
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/enet/include
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/clsocket/src
+	${PYTHON_INCLUDE_DIRS}
+)
+set(_pybullet_compile_defs
+	STATIC_LINK_SPD_PLUGIN
+)
+set(_pybullet_link_libs
+	BulletRoboticsGUI
+	BulletExampleBrowserLib
+	BulletRobotics
+	BulletFileLoader
+	BulletWorldImporter
+	BulletSoftBody
+	BulletDynamics
+	BulletCollision
+	BulletInverseDynamicsUtils
+	BulletInverseDynamics
+	LinearMath
+	OpenGLWindow
+	gwen
+	BussIK
+	Bullet3Common
+)
 IF(BUILD_PYBULLET_NUMPY)
-	INCLUDE_DIRECTORIES(
-		${PYTHON_NUMPY_INCLUDE_DIR}
-	)
+	list(APPEND _pybullet_include_dirs ${PYTHON_NUMPY_INCLUDE_DIR})
 ENDIF()
 
-ADD_DEFINITIONS(-DSTATIC_LINK_SPD_PLUGIN )
-
 IF(ENABLE_VHACD)
-ADD_DEFINITIONS(-DBT_ENABLE_VHACD)
-
-INCLUDE_DIRECTORIES( 
-  ../../Extras/VHACD/inc
-  ../../Extras/VHACD/public
-)
+	list(APPEND _pybullet_compile_defs BT_ENABLE_VHACD)
+	list(APPEND _pybullet_include_dirs
+		../../Extras/VHACD/inc
+		../../Extras/VHACD/public
+	)
 ENDIF(ENABLE_VHACD)
 	
 SET(pybullet_SRCS
@@ -29,27 +44,25 @@ SET(pybullet_SRCS
 )
 
 IF(BUILD_CLSOCKET)
- ADD_DEFINITIONS(-DBT_ENABLE_CLSOCKET)
+ list(APPEND _pybullet_compile_defs BT_ENABLE_CLSOCKET)
 ENDIF()
 
 IF(WIN32)
-	LINK_LIBRARIES(
-		${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
-	)
+	list(APPEND _pybullet_link_libs ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 	IF(BUILD_ENET)
-		ADD_DEFINITIONS(-DWIN32 -DBT_ENABLE_ENET)
+		list(APPEND _pybullet_compile_defs WIN32 BT_ENABLE_ENET)
 	ENDIF()
 	IF(BUILD_CLSOCKET)
-		ADD_DEFINITIONS(-DWIN32)
+		list(APPEND _pybullet_compile_defs WIN32)
 	ENDIF()
 
 ELSE(WIN32)
 	IF(BUILD_ENET)
-		ADD_DEFINITIONS(-DHAS_SOCKLEN_T -DBT_ENABLE_ENET)
+		list(APPEND _pybullet_compile_defs HAS_SOCKLEN_T BT_ENABLE_ENET)
 	ENDIF()
 
 	IF(BUILD_CLSOCKET)	
-		ADD_DEFINITIONS(${OSDEF})
+		list(APPEND _pybullet_compile_defs ${OSDEF})
 	ENDIF()
 ENDIF(WIN32)
 
@@ -63,11 +76,14 @@ SET_TARGET_PROPERTIES(pybullet PROPERTIES POSTFIX "")
 SET_TARGET_PROPERTIES(pybullet PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(pybullet PROPERTIES SOVERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(pybullet PROPERTIES DEBUG_POSTFIX "_d")
+target_include_directories(pybullet PRIVATE ${_pybullet_include_dirs})
+target_compile_definitions(pybullet PRIVATE ${_pybullet_compile_defs})
+target_link_libraries(pybullet PRIVATE ${_pybullet_link_libs})
 
 
 IF(WIN32)
 	IF(BUILD_ENET OR BUILD_CLSOCKET)
-		TARGET_LINK_LIBRARIES(pybullet ws2_32 )
+		TARGET_LINK_LIBRARIES(pybullet PRIVATE ws2_32 )
 	ENDIF()
 
 	SET_TARGET_PROPERTIES(pybullet PROPERTIES SUFFIX ".pyd" )
@@ -78,11 +94,8 @@ IF (APPLE)
 ENDIF()
 
 
-
-TARGET_LINK_LIBRARIES(pybullet BulletRoboticsGUI BulletExampleBrowserLib BulletRobotics BulletFileLoader BulletWorldImporter BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamicsUtils BulletInverseDynamics LinearMath OpenGLWindow gwen BussIK Bullet3Common)
-
 IF (WIN32)
-  TARGET_LINK_LIBRARIES(pybullet ${PYTHON_LIBRARIES})
+  TARGET_LINK_LIBRARIES(pybullet PRIVATE ${PYTHON_LIBRARIES})
 ELSEIF (APPLE)
   SET_TARGET_PROPERTIES(pybullet PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 ENDIF ()
@@ -95,4 +108,3 @@ ELSE()
 ENDIF()
 
 INSTALL(TARGETS pybullet DESTINATION ${PYTHON_SITE_PACKAGES})
-

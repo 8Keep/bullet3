@@ -11,16 +11,9 @@ SET(includes
 	${BULLET_PHYSICS_SOURCE_DIR}/src
 )
 
-
-LINK_LIBRARIES(
-	 BulletFileLoader  LinearMath
-)
-
-INCLUDE_DIRECTORIES(${includes})
-
-SET(Main_LIBS  LinearMath)
-
 ADD_EXECUTABLE(HeaderGenerator ${cpp_SRC} ${h_SRC})
+target_include_directories(HeaderGenerator PRIVATE ${includes})
+target_link_libraries(HeaderGenerator PRIVATE BulletFileLoader LinearMath)
 
 IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 	ADD_CUSTOM_COMMAND(

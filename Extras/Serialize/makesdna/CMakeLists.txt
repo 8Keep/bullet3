@@ -4,8 +4,6 @@ IF(COMMAND cmake_policy)
    cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
 
-INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/src )
-
 #FILE(GLOB INC_FILES ../*.h)
 
 SET (INC_FILES
@@ -22,6 +20,7 @@ SET (INC_FILES
 # Build makesdna executable
 SET(SRC makesdna.cpp)
 ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
+target_include_directories(makesdna PRIVATE ${BULLET_PHYSICS_SOURCE_DIR}/src)
 
 IF (CMAKE_CL_64)
 	# Output BulletDNA.c
@@ -47,5 +46,6 @@ ENDIF()
 
 
 ADD_LIBRARY(BulletDNA ${SRC} ${INC_FILES})
+target_include_directories(BulletDNA PRIVATE ${BULLET_PHYSICS_SOURCE_DIR}/src)
 
 MESSAGE(STATUS "Configuring makesdna")

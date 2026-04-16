@@ -1,13 +1,3 @@
-
-INCLUDE_DIRECTORIES( 
-		${BULLET_PHYSICS_SOURCE_DIR}/src
-		${BULLET_PHYSICS_SOURCE_DIR}/examples
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/enet/include
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/clsocket/src
-  )
-
-
 SET(RobotSimulator_SRCS
 		TwoJointMain.cpp
 		../../examples/SharedMemory/plugins/collisionFilterPlugin/collisionFilterPlugin.cpp
@@ -86,28 +76,54 @@ SET(RobotSimulator_SRCS
 		
 )
 
+set(_two_joint_include_dirs
+	${BULLET_PHYSICS_SOURCE_DIR}/src
+	${BULLET_PHYSICS_SOURCE_DIR}/examples
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/enet/include
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/clsocket/src
+)
+
+set(_two_joint_compile_defs)
+set(_two_joint_link_libs
+	BulletExampleBrowserLib
+	BulletFileLoader
+	BulletWorldImporter
+	BulletSoftBody
+	BulletDynamics
+	BulletCollision
+	BulletInverseDynamicsUtils
+	BulletInverseDynamics
+	LinearMath
+	OpenGLWindow
+	gwen
+	BussIK
+	Bullet3Common
+)
+
 IF(BUILD_CLSOCKET)
- ADD_DEFINITIONS(-DBT_ENABLE_CLSOCKET)
+ list(APPEND _two_joint_compile_defs BT_ENABLE_CLSOCKET)
 ENDIF(BUILD_CLSOCKET)
 
 IF(WIN32)
-	LINK_LIBRARIES(
-		${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
+	list(APPEND _two_joint_link_libs
+		${OPENGL_gl_LIBRARY}
+		${OPENGL_glu_LIBRARY}
 	)
 	IF(BUILD_ENET)
-		ADD_DEFINITIONS(-DWIN32 -DBT_ENABLE_ENET)
+		list(APPEND _two_joint_compile_defs WIN32 BT_ENABLE_ENET)
 	ENDIF(BUILD_ENET)
 	IF(BUILD_CLSOCKET)
-		ADD_DEFINITIONS(-DWIN32)
+		list(APPEND _two_joint_compile_defs WIN32)
 	ENDIF(BUILD_CLSOCKET)
 
 ELSE(WIN32)
 	IF(BUILD_ENET)
-		ADD_DEFINITIONS(-DHAS_SOCKLEN_T -DBT_ENABLE_ENET)
+		list(APPEND _two_joint_compile_defs HAS_SOCKLEN_T BT_ENABLE_ENET)
 	ENDIF(BUILD_ENET)
 
 	IF(BUILD_CLSOCKET)	
-		ADD_DEFINITIONS(${OSDEF})
+		list(APPEND _two_joint_compile_defs ${OSDEF})
 	ENDIF(BUILD_CLSOCKET)
 ENDIF(WIN32)
 
@@ -145,26 +161,26 @@ ENDIF()
 
 #some code to support OpenGL and Glew cross platform
 IF (WIN32)
-	INCLUDE_DIRECTORIES(
-			${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
+	list(APPEND _two_joint_include_dirs
+		${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
 	)
-	ADD_DEFINITIONS(-DGLEW_STATIC)
-	LINK_LIBRARIES( ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
+	list(APPEND _two_joint_compile_defs GLEW_STATIC)
 ELSE(WIN32)
 	IF(APPLE)
 		find_library(COCOA NAMES Cocoa)
 		MESSAGE(${COCOA})
-		link_libraries(${COCOA} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+		list(APPEND _two_joint_link_libs ${COCOA} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 
 	ELSE(APPLE)
-		INCLUDE_DIRECTORIES(
-				${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
+		list(APPEND _two_joint_include_dirs
+			${BULLET_PHYSICS_SOURCE_DIR}/btgui/OpenGLWindow/GlewWindows
 		)
-		ADD_DEFINITIONS("-DGLEW_INIT_OPENGL11_FUNCTIONS=1")
-		ADD_DEFINITIONS("-DGLEW_STATIC")
-		ADD_DEFINITIONS("-DGLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1")
-
-		LINK_LIBRARIES(  pthread ${DL} )
+		list(APPEND _two_joint_compile_defs
+			GLEW_INIT_OPENGL11_FUNCTIONS=1
+			GLEW_STATIC
+			GLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1
+		)
+		list(APPEND _two_joint_link_libs pthread ${DL})
 	ENDIF(APPLE)
 ENDIF(WIN32)
 
@@ -173,16 +189,14 @@ ADD_EXECUTABLE(App_TwoJoint  ${RobotSimulator_SRCS})
 
 SET_TARGET_PROPERTIES(App_TwoJoint PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(App_TwoJoint PROPERTIES DEBUG_POSTFIX "_d")
+target_include_directories(App_TwoJoint PRIVATE ${_two_joint_include_dirs})
+target_compile_definitions(App_TwoJoint PRIVATE ${_two_joint_compile_defs})
+target_link_libraries(App_TwoJoint PRIVATE ${_two_joint_link_libs})
 
 
 IF(WIN32)
 	IF(BUILD_ENET OR BUILD_CLSOCKET)
-		TARGET_LINK_LIBRARIES(App_TwoJoint ws2_32 )
+		TARGET_LINK_LIBRARIES(App_TwoJoint PRIVATE ws2_32 )
 	ENDIF(BUILD_ENET OR BUILD_CLSOCKET)
 ENDIF(WIN32)
-
-
-
-TARGET_LINK_LIBRARIES(App_TwoJoint BulletExampleBrowserLib BulletFileLoader BulletWorldImporter BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamicsUtils BulletInverseDynamics LinearMath OpenGLWindow gwen BussIK Bullet3Common)
-
 

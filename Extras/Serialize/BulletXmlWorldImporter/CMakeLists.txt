@@ -1,10 +1,3 @@
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletWorldImporter
-	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/tinyxml2
-)
-
 ADD_LIBRARY(
 	BulletXmlWorldImporter
 	btBulletXmlWorldImporter.cpp
@@ -13,13 +6,18 @@ ADD_LIBRARY(
 	string_split.h
 	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/tinyxml2/tinyxml2.cpp
 )
+target_include_directories(BulletXmlWorldImporter
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+	PRIVATE
+		${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
+		${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletWorldImporter
+		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/tinyxml2
+)
 
 SET_TARGET_PROPERTIES(BulletXmlWorldImporter  PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletXmlWorldImporter PROPERTIES SOVERSION ${BULLET_VERSION})
-
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletXmlWorldImporter BulletWorldImporter BulletDynamics BulletCollision BulletFileLoader LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+TARGET_LINK_LIBRARIES(BulletXmlWorldImporter PUBLIC BulletWorldImporter BulletDynamics BulletCollision BulletFileLoader LinearMath)
 
 IF (INSTALL_EXTRA_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

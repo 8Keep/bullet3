@@ -6,8 +6,6 @@
 #set(BUILD_MINOR "4")
 #set(BUILD_VERSION "3")
 
-include_directories(src)
-
 SET(CLSOCKET_HEADERS
 src/ActiveSocket.h
 src/Host.h
@@ -30,15 +28,15 @@ LIST(APPEND CLSOCKET_SOURCES ${CLSOCKET_HEADERS})
 # OS and compiler checks. 
 if(UNIX)
     # linux / normal unix
-    add_definitions(${OSDEF})
+    list(APPEND _clsocket_compile_defs ${OSDEF})
 elseif(WIN32)
-    add_definitions(-DWIN32)
+    list(APPEND _clsocket_compile_defs WIN32)
     SET(PROJECT_LIBS Ws2_32.lib)
     if(MINGW)
         # Special MINGW stuff here
     elseif(MSVC)
         # Special MSVC stuff here
-        add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+        list(APPEND _clsocket_compile_defs _WINSOCK_DEPRECATED_NO_WARNINGS)
     else()
         # No idea what it is, but there's a good chance it's too weird.
         MESSAGE( FATAL_ERROR "Using unknown WIN32 compiler... NOT. Please add to build system." )
@@ -62,7 +60,9 @@ else()
         ADD_LIBRARY(clsocket STATIC ${CLSOCKET_SOURCES})
     endif()
 endif()
-TARGET_LINK_LIBRARIES(clsocket ${PROJECT_LIBS})
+target_include_directories(clsocket PUBLIC src)
+target_compile_definitions(clsocket PRIVATE ${_clsocket_compile_defs})
+TARGET_LINK_LIBRARIES(clsocket PRIVATE ${PROJECT_LIBS})
 
 # install into configured prefix
 if(NOT CLSOCKET_DEP_ONLY)
@@ -71,4 +71,3 @@ if(NOT CLSOCKET_DEP_ONLY)
 else()
 
 endif()
-

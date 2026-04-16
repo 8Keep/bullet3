@@ -1,14 +1,26 @@
 
-INCLUDE_DIRECTORIES(
-		${BULLET_PHYSICS_SOURCE_DIR}/src
-		${BULLET_PHYSICS_SOURCE_DIR}/examples
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/SharedMemory
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/enet/include
-		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/clsocket/src
+set(_bullet_robotics_include_dirs
+	${BULLET_PHYSICS_SOURCE_DIR}/src
+	${BULLET_PHYSICS_SOURCE_DIR}/examples
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/SharedMemory
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/enet/include
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/clsocket/src
 )
-ADD_DEFINITIONS(-DSTATIC_LINK_SPD_PLUGIN)
-
+set(_bullet_robotics_compile_defs
+	STATIC_LINK_SPD_PLUGIN
+)
+set(_bullet_robotics_link_libs
+	BulletInverseDynamicsUtils
+	BulletWorldImporter
+	BulletFileLoader
+	BulletSoftBody
+	BulletDynamics
+	BulletCollision
+	BulletInverseDynamics
+	LinearMath
+	Bullet3Common
+)
 
 
 SET(BulletRobotics_INCLUDES
@@ -179,7 +191,7 @@ SET(BulletRobotics_SRCS ${BulletRobotics_INCLUDES}
 )
 
 IF(ENABLE_VHACD)
-ADD_DEFINITIONS(-DBT_ENABLE_VHACD)
+list(APPEND _bullet_robotics_compile_defs BT_ENABLE_VHACD)
 SET(BulletRobotics_SRCS ${BulletRobotics_SRCS}
   ../../Extras/VHACD/test/src/main_vhacd.cpp
   ../../Extras/VHACD/src/VHACD.cpp
@@ -188,36 +200,36 @@ SET(BulletRobotics_SRCS ${BulletRobotics_SRCS}
   ../../Extras/VHACD/src/vhacdMesh.cpp
   ../../Extras/VHACD/src/vhacdVolume.cpp
 )
-INCLUDE_DIRECTORIES( 
+list(APPEND _bullet_robotics_include_dirs
   ../../Extras/VHACD/inc
   ../../Extras/VHACD/public
 )
 ENDIF(ENABLE_VHACD)
 
 IF(BUILD_CLSOCKET)
- ADD_DEFINITIONS(-DBT_ENABLE_CLSOCKET)
+ list(APPEND _bullet_robotics_compile_defs BT_ENABLE_CLSOCKET)
 ENDIF(BUILD_CLSOCKET)
 
 IF(WIN32)
 	IF(BUILD_ENET)
-		ADD_DEFINITIONS(-DWIN32 -DBT_ENABLE_ENET)
+		list(APPEND _bullet_robotics_compile_defs WIN32 BT_ENABLE_ENET)
 	ENDIF(BUILD_ENET)
 	IF(BUILD_CLSOCKET)
-		ADD_DEFINITIONS(-DWIN32)
+		list(APPEND _bullet_robotics_compile_defs WIN32)
 	ENDIF(BUILD_CLSOCKET)
 
 ELSE(WIN32)
 	IF(BUILD_ENET)
-		ADD_DEFINITIONS(-DHAS_SOCKLEN_T -DBT_ENABLE_ENET)
+		list(APPEND _bullet_robotics_compile_defs HAS_SOCKLEN_T BT_ENABLE_ENET)
 	ENDIF(BUILD_ENET)
 
 	IF(BUILD_CLSOCKET)	
-		ADD_DEFINITIONS(${OSDEF})
+		list(APPEND _bullet_robotics_compile_defs ${OSDEF})
 	ENDIF(BUILD_CLSOCKET)
 		
 	IF(NOT APPLE)
 		FIND_PACKAGE(Threads)
-		LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} ${DL} )
+		list(APPEND _bullet_robotics_link_libs ${CMAKE_THREAD_LIBS_INIT} ${DL})
 	ENDIF(NOT APPLE)
 ENDIF(WIN32)
 
@@ -273,17 +285,16 @@ IF(BUILD_CLSOCKET)
   )
 ENDIF()
 
-ADD_DEFINITIONS(-DPHYSICS_SERVER_DIRECT)
+list(APPEND _bullet_robotics_compile_defs PHYSICS_SERVER_DIRECT)
 
 
 ADD_LIBRARY(BulletRobotics ${BulletRobotics_SRCS})
+target_include_directories(BulletRobotics PRIVATE ${_bullet_robotics_include_dirs})
+target_compile_definitions(BulletRobotics PRIVATE ${_bullet_robotics_compile_defs})
+target_link_libraries(BulletRobotics PUBLIC ${_bullet_robotics_link_libs})
 
 SET_TARGET_PROPERTIES(BulletRobotics PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletRobotics PROPERTIES SOVERSION ${BULLET_VERSION})
-
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletRobotics BulletInverseDynamicsUtils BulletWorldImporter BulletFileLoader BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamics LinearMath Bullet3Common)
-ENDIF (BUILD_SHARED_LIBS)
 
   
 
@@ -314,4 +325,3 @@ IF(NOT MSVC)
       ${PKGCONFIG_INSTALL_PREFIX}
     )
 ENDIF(NOT MSVC)
-
