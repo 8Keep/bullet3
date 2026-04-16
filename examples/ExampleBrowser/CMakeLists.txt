@@ -1,27 +1,42 @@
 
-INCLUDE_DIRECTORIES(
-	.
+FILE(GLOB GwenGUISupport_SRCS  "GwenGUISupport/*" )
+FILE(GLOB GwenGUISupport_HDRS  "GwenGUISupport/*" )
+
+set(_bullet_example_browser_lib_include_dirs
+	${CMAKE_CURRENT_SOURCE_DIR}
 	${BULLET_PHYSICS_SOURCE_DIR}/src
 	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
 )
 
-FILE(GLOB GwenGUISupport_SRCS  "GwenGUISupport/*" )
-FILE(GLOB GwenGUISupport_HDRS  "GwenGUISupport/*" )
-
+set(_bullet_example_browser_lib_compile_defs)
+set(_bullet_example_browser_lib_link_libs
+	Bullet3Common
+	BulletSoftBody
+	BulletDynamics
+	BulletInverseDynamicsUtils
+	BulletInverseDynamics
+	OpenGLWindow
+	gwen
+	BussIK
+)
 
 IF (WIN32)
-        INCLUDE_DIRECTORIES(
+        list(APPEND _bullet_example_browser_lib_include_dirs
                 ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
         )
-				ADD_DEFINITIONS(-DGLEW_STATIC)
+		list(APPEND _bullet_example_browser_lib_compile_defs GLEW_STATIC)
 ELSE(WIN32)
         IF(APPLE)
                 find_library(COCOA NAMES Cocoa)
   			ELSE(APPLE)
-                ADD_DEFINITIONS("-DGLEW_INIT_OPENGL11_FUNCTIONS=1")
-                ADD_DEFINITIONS("-DGLEW_STATIC")
-                ADD_DEFINITIONS("-DGLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1")
-                INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad )
+                list(APPEND _bullet_example_browser_lib_compile_defs
+			GLEW_INIT_OPENGL11_FUNCTIONS=1
+			GLEW_STATIC
+			GLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1
+		)
+                list(APPEND _bullet_example_browser_lib_include_dirs
+			${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
+		)
      		ENDIF(APPLE)
 ENDIF(WIN32)
 
@@ -42,35 +57,24 @@ ADD_LIBRARY(BulletExampleBrowserLib
 	../Utils/b3ReferenceFrameHelper.hpp
 	${GwenGUISupport_SRCS}
 	${GwenGUISupport_HDRS}
-	
+
 )
 
+target_include_directories(BulletExampleBrowserLib PRIVATE ${_bullet_example_browser_lib_include_dirs})
+target_compile_definitions(BulletExampleBrowserLib PRIVATE ${_bullet_example_browser_lib_compile_defs})
 SET_TARGET_PROPERTIES(BulletExampleBrowserLib PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletExampleBrowserLib PROPERTIES SOVERSION ${BULLET_VERSION})
-IF (BUILD_SHARED_LIBS)
-		IF (WIN32)
-                TARGET_LINK_LIBRARIES(
-                        BulletExampleBrowserLib Bullet3Common BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamicsUtils
-                        BulletInverseDynamics LinearMath OpenGLWindow gwen BussIK
-                        ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
-                )
-		ELSE(WIN32)
-        IF(APPLE)
-                 TARGET_LINK_LIBRARIES(
-                                BulletExampleBrowserLib Bullet3Common BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamicsUtils
-                                BulletInverseDynamics LinearMath OpenGLWindow gwen BussIK
-                                ${COCOA} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
-                 )
-				ELSE(APPLE)
-                 FIND_PACKAGE(Threads)
-                 TARGET_LINK_LIBRARIES(
-                                BulletExampleBrowserLib Bullet3Common BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamicsUtils
-                                BulletInverseDynamics LinearMath OpenGLWindow gwen BussIK
-                                ${CMAKE_THREAD_LIBS_INIT} ${DL}
-                        )
-        ENDIF(APPLE)
-	ENDIF(WIN32)
-ENDIF(BUILD_SHARED_LIBS)
+IF (WIN32)
+	list(APPEND _bullet_example_browser_lib_link_libs ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+ELSE(WIN32)
+	IF(APPLE)
+		list(APPEND _bullet_example_browser_lib_link_libs ${COCOA} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+	ELSE(APPLE)
+		FIND_PACKAGE(Threads)
+		list(APPEND _bullet_example_browser_lib_link_libs ${CMAKE_THREAD_LIBS_INIT} ${DL})
+	ENDIF(APPLE)
+ENDIF(WIN32)
+TARGET_LINK_LIBRARIES(BulletExampleBrowserLib PUBLIC ${_bullet_example_browser_lib_link_libs})
 
 INSTALL(TARGETS BulletExampleBrowserLib
         RUNTIME DESTINATION bin
@@ -83,42 +87,52 @@ INSTALL(TARGETS BulletExampleBrowserLib
 #
 ####################
 
-INCLUDE_DIRECTORIES(
-        .
-        ${BULLET_PHYSICS_SOURCE_DIR}/src
+set(_app_example_browser_include_dirs
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${BULLET_PHYSICS_SOURCE_DIR}/src
 	${BULLET_PHYSICS_SOURCE_DIR}/examples/SharedMemory
-        ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
+	${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs
 )
 
-
-LINK_LIBRARIES(
-        BulletExampleBrowserLib Bullet3Common BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamicsUtils BulletInverseDynamics LinearMath OpenGLWindow gwen BussIK
+set(_app_example_browser_compile_defs
+	INCLUDE_CLOTH_DEMOS
 )
 
-
-add_definitions(-DINCLUDE_CLOTH_DEMOS)
+set(_app_example_browser_link_libs
+	BulletExampleBrowserLib
+)
 
 IF (WIN32)
-	INCLUDE_DIRECTORIES(
+	list(APPEND _app_example_browser_include_dirs
 		${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
 	)
-	LINK_LIBRARIES(
+	list(APPEND _app_example_browser_compile_defs GLEW_STATIC)
+	list(APPEND _app_example_browser_link_libs
 		${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
 	)
-	ADD_DEFINITIONS(-DGLEW_STATIC)
 ELSE(WIN32)
 	IF(APPLE)
                 find_library(COCOA NAMES Cocoa)
                 MESSAGE(${COCOA})
-                link_libraries(${COCOA} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
-		INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad )
+                list(APPEND _app_example_browser_include_dirs
+			${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
+		)
+                list(APPEND _app_example_browser_link_libs
+			${COCOA} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
+		)
   ELSE(APPLE)
-		ADD_DEFINITIONS("-DGLEW_INIT_OPENGL11_FUNCTIONS=1")
-		ADD_DEFINITIONS("-DGLEW_STATIC")
-		ADD_DEFINITIONS("-DGLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1")
-		INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad )
 		FIND_PACKAGE(Threads)
-		LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} ${DL} )
+		list(APPEND _app_example_browser_compile_defs
+			GLEW_INIT_OPENGL11_FUNCTIONS=1
+			GLEW_STATIC
+			GLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1
+		)
+		list(APPEND _app_example_browser_include_dirs
+			${BULLET_PHYSICS_SOURCE_DIR}/examples/ThirdPartyLibs/glad
+		)
+		list(APPEND _app_example_browser_link_libs
+			${CMAKE_THREAD_LIBS_INIT} ${DL}
+		)
 	ENDIF(APPLE)
 ENDIF(WIN32)
 
@@ -437,6 +451,9 @@ ADD_EXECUTABLE(App_ExampleBrowser
 		${ExtendedTutorialsSources}
 		${BulletExampleBrowser_SRCS} 
 )
+target_include_directories(App_ExampleBrowser PRIVATE ${_app_example_browser_include_dirs})
+target_compile_definitions(App_ExampleBrowser PRIVATE ${_app_example_browser_compile_defs})
+target_link_libraries(App_ExampleBrowser PRIVATE ${_app_example_browser_link_libs})
 
 FILE( MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/data" )
 
@@ -468,4 +485,3 @@ IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
 			SET_TARGET_PROPERTIES(App_ExampleBrowser PROPERTIES  MINSIZEREL_POSTFIX "_MinsizeRel")
 			SET_TARGET_PROPERTIES(App_ExampleBrowser PROPERTIES  RELWITHDEBINFO_POSTFIX "_RelWithDebugInfo")
 ENDIF(INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
-
