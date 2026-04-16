@@ -1,22 +1,12 @@
-
-INCLUDE_DIRECTORIES(
-	.
-	../../src
-	../gtest-1.7.0/include
-)
-
-
 #ADD_DEFINITIONS(-DGTEST_HAS_PTHREAD=1)
-ADD_DEFINITIONS(-D_VARIADIC_MAX=10)
-
-LINK_LIBRARIES(
- LinearMath gtest
+set(_test_collision_libs
+	LinearMath
+	gtest
 )
-
-IF (NOT WIN32)
+if (NOT WIN32)
 	FIND_PACKAGE(Threads)
-	LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} )
-ENDIF()
+	list(APPEND _test_collision_libs ${CMAKE_THREAD_LIBS_INIT})
+endif()
 
 	ADD_EXECUTABLE(Test_Collision
 		main.cpp
@@ -33,6 +23,17 @@ ENDIF()
 		../../src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp
 		../../src/BulletCollision/CollisionShapes/btTriangleCallback.cpp
 	)
+
+target_compile_definitions(Test_Collision PRIVATE _VARIADIC_MAX=10)
+target_include_directories(Test_Collision
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/src
+)
+target_link_libraries(Test_Collision
+	PRIVATE
+		${_test_collision_libs}
+)
 
 ADD_TEST(Test_Collision_PASS Test_Collision)
 

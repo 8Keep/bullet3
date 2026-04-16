@@ -1,13 +1,5 @@
 # HelloWorld is a minimal sample creating, stepping and deleting a Bullet dynamics world
 
-INCLUDE_DIRECTORIES(
-${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
-LINK_LIBRARIES(
- BulletDynamics BulletCollision LinearMath
-)
-
 IF (WIN32)
 	ADD_EXECUTABLE(App_HelloWorld
 		HelloWorld.cpp
@@ -19,6 +11,10 @@ ELSE()
 	)
 ENDIF()
 
+target_link_libraries(App_HelloWorld
+	PRIVATE
+		BulletDynamics
+)
 
 
 
