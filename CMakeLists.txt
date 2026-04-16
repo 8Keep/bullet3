@@ -9,6 +9,7 @@ SET(MSVC_INCREMENTAL_DEFAULT ON)
 
 PROJECT(BULLET_PHYSICS LANGUAGES C CXX)
 FILE (STRINGS "VERSION" BULLET_VERSION)
+include(CMakePackageConfigHelpers)
 
 IF(COMMAND cmake_policy)
    cmake_policy(SET CMP0003 NEW)
@@ -478,22 +479,31 @@ ENDIF()
 
 set (BULLET_CONFIG_CMAKE_PATH lib${LIB_SUFFIX}/cmake/bullet )
 list (APPEND BULLET_DEFINITIONS ${BULLET_DOUBLE_DEF})
-list (APPEND BULLET_LIBRARIES LinearMath)
-list (APPEND BULLET_LIBRARIES Bullet3Common)
-list (APPEND BULLET_LIBRARIES BulletInverseDynamics)
-list (APPEND BULLET_LIBRARIES BulletCollision)
-list (APPEND BULLET_LIBRARIES BulletDynamics)
-list (APPEND BULLET_LIBRARIES BulletSoftBody)
 set (BULLET_USE_FILE ${BULLET_CONFIG_CMAKE_PATH}/UseBullet.cmake)
-configure_file 	( ${CMAKE_CURRENT_SOURCE_DIR}/BulletConfig.cmake.in
-					${CMAKE_CURRENT_BINARY_DIR}/BulletConfig.cmake
-					@ONLY ESCAPE_QUOTES
-				)
+configure_package_config_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/BulletConfig.cmake.in
+	${CMAKE_CURRENT_BINARY_DIR}/BulletConfig.cmake
+	INSTALL_DESTINATION ${BULLET_CONFIG_CMAKE_PATH}
+	PATH_VARS INCLUDE_INSTALL_DIR LIB_DESTINATION
+	NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+write_basic_package_version_file(
+	${CMAKE_CURRENT_BINARY_DIR}/BulletConfigVersion.cmake
+	VERSION ${BULLET_VERSION}
+	COMPATIBILITY SameMajorVersion
+)
 OPTION(INSTALL_CMAKE_FILES "Install generated CMake files" ON)
 
 IF (INSTALL_CMAKE_FILES)
 	install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/UseBullet.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/BulletConfig.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/BulletConfigVersion.cmake
+		DESTINATION ${BULLET_CONFIG_CMAKE_PATH}
+	)
+	install(
+		EXPORT BulletTargets
+		FILE BulletTargets.cmake
+		NAMESPACE Bullet::
 		DESTINATION ${BULLET_CONFIG_CMAKE_PATH}
 	)
 ENDIF (INSTALL_CMAKE_FILES)
