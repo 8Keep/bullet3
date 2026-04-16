@@ -1,5 +1,3 @@
-INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/src  )
-
 SET(BulletInverseDynamics_SRCS
 	IDMath.cpp
 	MultiBodyTree.cpp
@@ -30,11 +28,19 @@ SET(BulletInverseDynamics_HDRS
 
 
 ADD_LIBRARY(BulletInverseDynamics ${BulletInverseDynamics_SRCS} ${BulletInverseDynamics_HDRS})
-SET_TARGET_PROPERTIES(BulletInverseDynamics PROPERTIES VERSION ${BULLET_VERSION})
-SET_TARGET_PROPERTIES(BulletInverseDynamics PROPERTIES SOVERSION ${BULLET_VERSION})
-IF (BUILD_SHARED_LIBS)
-  TARGET_LINK_LIBRARIES(BulletInverseDynamics Bullet3Common LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+target_include_directories(BulletInverseDynamics
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+TARGET_LINK_LIBRARIES(BulletInverseDynamics
+	PUBLIC
+		Bullet3Common
+		LinearMath
+)
+SET_TARGET_PROPERTIES(BulletInverseDynamics PROPERTIES
+	VERSION ${BULLET_VERSION}
+	SOVERSION ${BULLET_VERSION}
+)
 
 
 IF (INSTALL_LIBS)

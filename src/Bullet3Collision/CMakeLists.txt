@@ -1,8 +1,3 @@
-
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
 SET(Bullet3Collision_SRCS
 	BroadPhaseCollision/b3DynamicBvh.cpp
 	BroadPhaseCollision/b3DynamicBvhBroadphase.cpp
@@ -58,11 +53,18 @@ SET(Bullet3Collision_HDRS
 )
 
 ADD_LIBRARY(Bullet3Collision ${Bullet3Collision_SRCS} ${Bullet3Collision_HDRS})
-if (BUILD_SHARED_LIBS)
-  target_link_libraries(Bullet3Collision Bullet3Geometry)
-endif ()
-SET_TARGET_PROPERTIES(Bullet3Collision PROPERTIES VERSION ${BULLET_VERSION})
-SET_TARGET_PROPERTIES(Bullet3Collision PROPERTIES SOVERSION ${BULLET_VERSION})
+target_include_directories(Bullet3Collision
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+target_link_libraries(Bullet3Collision
+	PUBLIC
+		Bullet3Geometry
+)
+SET_TARGET_PROPERTIES(Bullet3Collision PROPERTIES
+	VERSION ${BULLET_VERSION}
+	SOVERSION ${BULLET_VERSION}
+)
 
 IF (INSTALL_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

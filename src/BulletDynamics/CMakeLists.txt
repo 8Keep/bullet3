@@ -1,7 +1,3 @@
-INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/src  )
-
-
-
 SET(BulletDynamics_SRCS
 	Character/btKinematicCharacterController.cpp
 	ConstraintSolver/btConeTwistConstraint.cpp
@@ -141,11 +137,19 @@ SET(BulletDynamics_HDRS
 
 
 ADD_LIBRARY(BulletDynamics ${BulletDynamics_SRCS} ${BulletDynamics_HDRS})
-SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES VERSION ${BULLET_VERSION})
-SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES SOVERSION ${BULLET_VERSION})
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletDynamics BulletCollision LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+target_include_directories(BulletDynamics
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+TARGET_LINK_LIBRARIES(BulletDynamics
+	PUBLIC
+		BulletCollision
+		LinearMath
+)
+SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES
+	VERSION ${BULLET_VERSION}
+	SOVERSION ${BULLET_VERSION}
+)
 
 IF (INSTALL_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

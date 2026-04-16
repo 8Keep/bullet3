@@ -1,8 +1,3 @@
-
-INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src
-)
-
 SET(Bullet3Geometry_SRCS
 	b3ConvexHullComputer.cpp
 	b3GeometryUtil.cpp
@@ -16,11 +11,18 @@ SET(Bullet3Geometry_HDRS
 )
 
 ADD_LIBRARY(Bullet3Geometry ${Bullet3Geometry_SRCS} ${Bullet3Geometry_HDRS})
-if (BUILD_SHARED_LIBS)
-  target_link_libraries(Bullet3Geometry Bullet3Common)
-endif()
-SET_TARGET_PROPERTIES(Bullet3Geometry PROPERTIES VERSION ${BULLET_VERSION})
-SET_TARGET_PROPERTIES(Bullet3Geometry PROPERTIES SOVERSION ${BULLET_VERSION})
+target_include_directories(Bullet3Geometry
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+target_link_libraries(Bullet3Geometry
+	PUBLIC
+		Bullet3Common
+)
+SET_TARGET_PROPERTIES(Bullet3Geometry PROPERTIES
+	VERSION ${BULLET_VERSION}
+	SOVERSION ${BULLET_VERSION}
+)
 
 IF (INSTALL_LIBS)
 	IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)

@@ -1,5 +1,3 @@
-INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/src  )
-
 SET(BulletCollision_SRCS
 	BroadphaseCollision/btAxisSweep3.cpp
 	BroadphaseCollision/btBroadphaseProxy.cpp
@@ -254,11 +252,18 @@ SET(BulletCollision_HDRS
 
 
 ADD_LIBRARY(BulletCollision ${BulletCollision_SRCS} ${BulletCollision_HDRS})
-SET_TARGET_PROPERTIES(BulletCollision PROPERTIES VERSION ${BULLET_VERSION})
-SET_TARGET_PROPERTIES(BulletCollision PROPERTIES SOVERSION ${BULLET_VERSION})
-IF (BUILD_SHARED_LIBS)
-  TARGET_LINK_LIBRARIES(BulletCollision LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+target_include_directories(BulletCollision
+	PUBLIC
+		$<BUILD_INTERFACE:${BULLET_PHYSICS_SOURCE_DIR}/src>
+)
+TARGET_LINK_LIBRARIES(BulletCollision
+	PUBLIC
+		LinearMath
+)
+SET_TARGET_PROPERTIES(BulletCollision PROPERTIES
+	VERSION ${BULLET_VERSION}
+	SOVERSION ${BULLET_VERSION}
+)
 
 
 IF (INSTALL_LIBS)
