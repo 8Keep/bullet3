@@ -1,7 +1,9 @@
 IF(BUILD_BULLET3)
 	#SUBDIRS( TestBullet3OpenCL )
-	SUBDIRS(  InverseDynamics SharedMemory )
+	add_subdirectory(InverseDynamics)
+	add_subdirectory(SharedMemory)
 ENDIF(BUILD_BULLET3)
 
-SUBDIRS(  gtest-1.7.0 collision BulletDynamics )
-
+add_subdirectory(gtest-1.7.0)
+add_subdirectory(collision)
+add_subdirectory(BulletDynamics)
